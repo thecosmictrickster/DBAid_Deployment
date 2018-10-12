@@ -144,8 +144,20 @@ try {
     $Acl.AddAccessRule((New-Object System.Security.AccessControl.FileSystemAccessRule($collector_svc,"Modify","ContainerInherit, ObjectInherit","None","Allow")))
     (Get-Item $collector_dest).SetAccessControl($Acl)
 
-      
     # copy configuration
+    [xml]$oldfile = Get-Content "$DBAidold_collector_backup\$collector_config" -Raw
+    [xml]$newfile = Get-Content "$collector_dest\$collector_config" -Raw
+    
+    # remove default connection strings from new config file
+    $node = $newfile.SelectSingleNode("/configuration/connectionStrings/add")
+
+    while ($node -ne $null) {
+      $node.ParentNode.RemoveChild($node) | Out-Null
+      $node = $newfile.SelectSingleNode("/configuration/connectionStrings/add")
+    }
+
+
+
   }
   else {
     Write-Host "Version match. Upgrade already done. Adding connection string..." -ForegroundColor Yellow
@@ -180,8 +192,6 @@ try {
   
   
   
-  [xml]$oldfile = Get-Content "$DBAidold_collector_backup\$collector_config" -Raw
-  [xml]$newfile = Get-Content "$collector_dest\$collector_config" -Raw
   
   
 
