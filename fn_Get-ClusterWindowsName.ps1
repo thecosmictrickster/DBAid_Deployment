@@ -17,7 +17,7 @@ function Get-ClusterWindowsName {
   # switch comment between the next two lines depending on if you want to specify a computer name or just pick up local machine name.
   #param([string]$servername)
   [string]$servername = $env:computername
-  [string]$clustername
+  [string]$clustername = ""
 
   $s = Get-WmiObject -Class Win32_SystemServices -ComputerName $servername
   if ($s | select PartComponent | where {$_ -like "*ClusSvc*"}) { 

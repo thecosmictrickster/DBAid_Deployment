@@ -6,23 +6,25 @@
   This function takes the Windows cluster name and queries WMI to retrieve SQL cluster VNN(s). 
  
  .Example 
-  Get-ClusterSQLNames
+  Get-ClusterSQLVNNs
 #>
 
-function Get-ClusterSQLNames {
-  [string]$clusterwindowsname
-  [object[]]$sqlinstances
+function Get-ClusterSQLVNNs {
+  [string]$clusterwindowsname = ""
+  [string[]]$sqlinstancenames = ""
   
   $clusterwindowsname = Get-ClusterWindowsName
 
   if ($clusterwindowsname -ine "NotClustered") {
     Import-Module FailoverClusters
-    $sqlinstances = Get-ClusterResource -cluster $clusterwindowsname | ? { $_.ResourceType -like "SQL Server"} | Get-ClusterParameter -cluster $clusterwindowsname VirtualServerName,InstanceName | Group-Object ClusterObject | Select @{ Name = "SQLInstance";Expression = { [string]::join("\",($_.Group | Select -expandproperty Value)) } }
+    $sqlinstancenames = Get-ClusterResource -cluster $clusterwindowsname | ? { $_.ResourceType -like "SQL Server"} | Get-ClusterParameter -cluster $clusterwindowsname VirtualServerName,InstanceName | Group-Object ClusterObject | Select @{ Name = "SQLInstance";Expression = { [string]::join("\",($_.Group | Select -expandproperty Value)) } } | Out-String
+    if ($sqlinstancenames[0] -ieq "") {
+      $sqlinstancenames[0] = "NotSQLCluster"
+    }
   }
   else {
-    Write-Output "This is not a cluster"
-    #$sqlinstances
+    $sqlinstancenames[0] = "NotClustered"
   }
-  return $sqlinstances.sqlinstance
+  return $sqlinstancenames
 }
 
